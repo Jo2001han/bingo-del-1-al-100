@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Bingo Virtual – Cartones 1 al 100</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #1a1a2e;
+    --card-bg: #16213e;
+    --accent: #FFD700;
+    --accent2: #e8523a;
+    --purple: #9b6fd4;
+    --green: #3ab87a;
+    --blue: #3aaae8;
+    --orange: #e8873a;
+    --text: #eef0ff;
+    --muted: #7a7faa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 30px 20px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    color: var(--accent);
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-top: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+  .btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: transform .15s, opacity .15s;
+  }
+  .btn:hover { transform: translateY(-2px); opacity: .9; }
+  .btn-primary { background: var(--accent); color: #1a1a2e; }
+  .btn-sheet {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 2px solid #2e3160;
+  }
+  .btn-sheet.active { border-color: var(--accent); color: var(--accent); }
+
+  /* ── SHEET ── */
+  .sheet {
+    display: none;
+    margin: 0 auto 40px;
+    max-width: 1080px;
+  }
+  .sheet.visible { display: block; }
+
+  .sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    border-radius: 16px 16px 0 0;
+    padding: 16px 24px;
+    border-bottom: 3px solid var(--accent);
+  }
+  .sheet-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: 3px;
+  }
+  .sheet-header span {
+    font-size: .85rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .print-sheet-btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent2);
+    color: #fff;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .print-sheet-btn:hover { opacity: .85; }
+
+  /* ── GRID ── */
+  .qr-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    background: var(--card-bg);
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+  }
+
+  .qr-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 12px;
+    border: 1px solid #2a2d5a;
+    position: relative;
+    gap: 10px;
+  }
+
+  /* alternating column accent bars */
+  .qr-item:nth-child(5n+1) { border-top: 4px solid var(--accent2); }
+  .qr-item:nth-child(5n+2) { border-top: 4px solid var(--orange); }
+  .qr-item:nth-child(5n+3) { border-top: 4px solid var(--green); }
+  .qr-item:nth-child(5n+4) { border-top: 4px solid var(--blue); }
+  .qr-item:nth-child(5n+5) { border-top: 4px solid var(--purple); }
+
+  .qr-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .qr-box {
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qr-url {
+    font-size: .62rem;
+    color: var(--muted);
+    letter-spacing: .5px;
+    text-align: center;
+    word-break: break-all;
+    max-width: 130px;
+  }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    body {
+      background: #fff !important;
+      color: #000 !important;
+      padding: 0;
+    }
+    .hero, .controls, .no-print { display: none !important; }
+    .sheet { display: block !important; margin: 0; max-width: 100%; page-break-after: always; }
+    .sheet-header {
+      background: #f5f5f5 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .sheet-header h2 { color: #222 !important; }
+    .sheet-header span { color: #555 !important; }
+    .print-sheet-btn { display: none; }
+    .qr-grid {
+      background: #fff !important;
+    }
+    .qr-item {
+      border-color: #ddd !important;
+    }
+    .qr-label { color: #222 !important; }
+    .qr-url { color: #777 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero no-print">
+  <h1>🎱 QR Bingo Virtual</h1>
+  <p>100 cartones · 10 hojas para imprimir · Cartones 1 al 100</p>
+</div>
+
+<div class="controls no-print" id="controls">
+  <button class="btn btn-primary" onclick="printAll()">🖨️ Imprimir todo</button>
+</div>
+
+<div id="sheets-container"></div>
+
+<script>
+const BASE_URL = "https://jo2001han.github.io/bingo-del-1-al-100/#";
+const COLORS = ['#E8523A','#E8873A','#3AB87A','#3AAAE8','#9B6FD4'];
+
+// Build 10 sheets of 10 QR codes each
+const container = document.getElementById('sheets-container');
+const controls = document.getElementById('controls');
+
+for (let sheet = 0; sheet < 10; sheet++) {
+  const start = sheet * 10 + 1;
+  const end = start + 9;
+
+  // Sheet wrapper
+  const sheetDiv = document.createElement('div');
+  sheetDiv.className = 'sheet visible';
+  sheetDiv.id = `sheet-${sheet + 1}`;
+
+  // Sheet header
+  sheetDiv.innerHTML = `
+    <div class="sheet-header">
+      <h2>📋 Hoja ${sheet + 1} de 10</h2>
+      <span>Cartones #${start} – #${end}</span>
+      <button class="print-sheet-btn no-print" onclick="printSheet(${sheet + 1})">🖨️ Imprimir esta hoja</button>
+    </div>
+    <div class="qr-grid" id="grid-${sheet + 1}"></div>
+  `;
+  container.appendChild(sheetDiv);
+
+  // Nav button
+  const navBtn = document.createElement('button');
+  navBtn.className = 'btn btn-sheet active no-print';
+  navBtn.textContent = `Hoja ${sheet + 1} (#${start}-${end})`;
+  controls.appendChild(navBtn);
+
+  // Build QR items
+  const grid = sheetDiv.querySelector(`#grid-${sheet + 1}`);
+
+  for (let i = start; i <= end; i++) {
+    const url = BASE_URL + i;
+    const item = document.createElement('div');
+    item.className = 'qr-item';
+
+    const label = document.createElement('div');
+    label.className = 'qr-label';
+    label.textContent = `CARTÓN #${i}`;
+
+    const box = document.createElement('div');
+    box.className = 'qr-box';
+    box.id = `qr-${i}`;
+
+    const urlDiv = document.createElement('div');
+    urlDiv.className = 'qr-url';
+    urlDiv.textContent = url;
+
+    item.appendChild(label);
+    item.appendChild(box);
+    item.appendChild(urlDiv);
+    grid.appendChild(item);
+
+    // Generate QR
+    new QRCode(box, {
+      text: url,
+      width: 120,
+      height: 120,
+      colorDark: '#1a1a2e',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+}
+
+function printSheet(n) {
+  // Hide all sheets except the one to print
+  document.querySelectorAll('.sheet').forEach(s => {
+    s.style.display = 'none';
+  });
+  document.getElementById(`sheet-${n}`).style.display = 'block';
+  window.print();
+  // Restore
+  document.querySelectorAll('.sheet').forEach(s => {
+    s.style.display = 'block';
+  });
+}
+
+function printAll() {
+  window.print();
+}
+</script>
+</body>
+</html>
